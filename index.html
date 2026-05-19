@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unidades de Conservação - Costa Catarinense</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #006994, #003d5c);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #006994;
+            padding-bottom: 0.5rem;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -0.5rem;
+        }
+
+        .nav-tab.active {
+            color: #006994;
+            border-bottom-color: #006994;
+            font-weight: bold;
+        }
+
+        .nav-tab:hover {
+            color: #006994;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .unidades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .unidade-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .unidade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .unidade-imagem {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 3px solid #006994;
+        }
+
+        .unidade-imagem.error {
+            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #006994;
+            font-size: 3rem;
+        }
+
+        .unidade-info {
+            padding: 1.5rem;
+        }
+
+        .unidade-nome {
+            font-size: 1.4rem;
+            color: #006994;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .unidade-data {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .unidade-instituicao {
+            display: inline-block;
+            background: #e8f4f8;
+            color: #006994;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .unidade-municipios {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .municipio-tag {
+            background: #f0f0f0;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        .unidade-descricao {
+            color: #555;
+            margin: 0.8rem 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .btn-comunicar {
+            display: inline-block;
+            background: #006994;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            text-decoration: none;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-comunicar:hover {
+            background: #003d5c;
+        }
+
+        .btn-submit {
+            background: #006994;
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            background: #003d5c;
+        }
+
+        .comunicacao-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .fonte-imagem {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        footer {
+            background: #003d5c;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .unidades-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌊 Unidades de Conservação</h1>
+        <p>Costa Catarinense - Gestão e Preservação Ambiental</p>
+    </header>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('unidades')">Unidades de Conservação</button>
+            <button class="nav-tab" onclick="showSection('comunicacao')">Enviar Comunicação</button>
+        </div>
+
+        <!-- Seção de Unidades de Conservação -->
+        <div id="unidades-section" class="section active">
+            <div class="unidades-grid" id="unidades-container">
+                <!-- Unidades serão carregadas aqui -->
+            </div>
+        </div>
+
+        <!-- Seção de Comunicação -->
+        <div id="comunicacao-section" class="section">
+            <div class="comunicacao-form">
+                <h2 style="color: #006994; margin-bottom: 1.5rem;">📝 Enviar Comunicação</h2>
+                
+                <div id="alert-success" class="alert alert-success">
+                    ✅ Comunicação enviada com sucesso! Sua mensagem será analisada pelos administradores.
+                </div>
+                
+                <div id="alert-error" class="alert alert-error">
+                    ❌ Erro ao enviar comunicação. Por favor, verifique os campos obrigatórios.
+                </div>
+
+                <form id="comunicacao-form">
+                    <div class="form-group">
+                        <label for="titulo">Título da Comunicação *</label>
+                        <input type="text" id="titulo" required placeholder="Ex: Problema com trilhas na unidade">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao">Descrição Detalhada *</label>
+                        <textarea id="descricao" required placeholder="Descreva detalhadamente o problema ou sugestão..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Seu E-mail *</label>
+                        <input type="email" id="email" required placeholder="seu@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unidade-select">Unidade de Conservação *</label>
+                        <select id="unidade-select" required>
+                            <option value="">Selecione uma unidade</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Enviar Comunicação</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Projeto de Extensão - Hands On Work VI | Análise e Desenvolvimento de Sistemas</p>
+        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Promovendo a gestão participativa das unidades de conservação da costa catarinense</p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.8;">Fontes das imagens: estado.sc.gov.br, riodeserto.com.br</p>
+    </footer>
+
+    <script>
+        
+        let unidadesConservacao = [
+            {
+                id: 1,
+                nome: "Parque Estadual Acaraí",
+                dataCriacao: "2005-09-23",
+                instituicaoId: 1,
+                municipiosIds: [1],
+                descricao: "Criado pelo Decreto Estadual Nº 3.517, o Parque Estadual Acaraí é uma ação propositiva para o estabelecimento de uma política territorial direcionada, em especial, para o turismo e para o desenvolvimento.",
+                imagem: "https://estado.sc.gov.br/noticias/wp-content/uploads/sites/3/2024/09/DJI_0069acarainiver2024.jpg",
+                fonteImagem: "estado.sc.gov.br"
+            },
+            {
+                id: 2,
+                nome: "Reserva Biológica Estadual do Aguaí",
+                dataCriacao: "1983-07-01",
+                instituicaoId: 1,
+                municipiosIds: [2, 3, 4, 5],
+                descricao: "Localizada nos contrafortes da Serra Geral, em altitudes que variam de 200 a 1470 metros, esta Reserva Biológica (Rebio) abrange os municípios de Morro Grande, Nova Veneza, Siderópolis e Treviso. Criada por meio do Decreto nº 19.635, protege uma área de 7.672 hectares.",
+                imagem: "https://www.riodeserto.com.br/blog/wp-content/uploads/2020/12/Felinos_4.jpeg",
+                fonteImagem: "riodeserto.com.br"
+            },
+            {
+                id: 3,
+                nome: "Parque Estadual das Araucárias",
+                dataCriacao: "2003-05-30",
+                instituicaoId: 1,
+                municipiosIds: [6, 7],
+                descricao: "Criado pelo Decreto nº 293, o Parque Estadual das Araucárias localiza-se nos municípios de São Domingos e Galvão, na Bacia do Rio Chapecó. A Unidade de Conservação, composta por uma área de 612 hectares, foi criada visando a proteção e conservação de uma amostra da Floresta Ombrófila Mista.",
+                imagem: "https://estado.sc.gov.br/noticias/wp-content/uploads/sites/3/2023/05/Imagem-Araucaria-Adrio-Centeno-IMA.jpg",
+                fonteImagem: "estado.sc.gov.br"
+            },
+            {
+                id: 4,
+                nome: "Reserva Biológica Estadual da Canela Preta",
+                dataCriacao: "1980-06-20",
+                instituicaoId: 1,
+                municipiosIds: [8, 9],
+                descricao: "A Reserva Biológica Estadual da Canela Preta é a terceira Unidade de Conservação mais antiga do Vale do Itajaí e da Mata Atlântica do Estado de Santa Catarina. Foi fundada pelo Decreto nº 11.232, para proteger a canela-preta (Ocotea catharinensis), árvore que predomina na área, mas está ameaçada de extinção, e dá nome à Unidade.",
+                imagem: "https://estado.sc.gov.br/noticias/wp-content/uploads/sites/3/2024/06/DJI_0352-anivercanelapreta2024-adrio.jpg",
+                fonteImagem: "estado.sc.gov.br"
+            }
+        ];
+
+        const instituicoes = [
+            { id: 1, nome: "Instituto do Meio Ambiente de Santa Catarina (IMA)" },
+            { id: 2, nome: "Instituto Chico Mendes de Conservação da Biodiversidade (ICMBio)" }
+        ];
+
+        const municipios = [
+            { id: 1, nome: "São Francisco do Sul" },
+            { id: 2, nome: "Morro Grande" },
+            { id: 3, nome: "Nova Veneza" },
+            { id: 4, nome: "Siderópolis" },
+            { id: 5, nome: "Treviso" },
+            { id: 6, nome: "São Domingos" },
+            { id: 7, nome: "Galvão" },
+            { id: 8, nome: "Botuverá" },
+            { id: 9, nome: "Itajaí" }
+        ];
+
+        let comunicacoes = [];
+
+        // Funções auxiliares
+        function getInstituicaoNome(id) {
+            const instituicao = instituicoes.find(inst => inst.id === id);
+            return instituicao ? instituicao.nome : 'Não especificada';
+        }
+
+        function getMunicipiosNomes(ids) {
+            return ids.map(id => {
+                const municipio = municipios.find(mun => mun.id === id);
+                return municipio ? municipio.nome : '';
+            }).filter(nome => nome !== '');
+        }
+
+        function formatDate(data) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', options);
+        }
+
+        // Renderizar unidades de conservação
+        function renderizarUnidades() {
+            const container = document.getElementById('unidades-container');
+            container.innerHTML = '';
+
+            unidadesConservacao.forEach(unidade => {
+                const card = document.createElement('div');
+                card.className = 'unidade-card';
+                
+                const municipiosList = getMunicipiosNomes(unidade.municipiosIds);
+                const municipiosHTML = municipiosList.map(mun => 
+                    `<span class="municipio-tag">${mun}</span>`
+                ).join('');
+
+                card.innerHTML = `
+                    <img src="${unidade.imagem}" 
+                         alt="${unidade.nome}" 
+                         class="unidade-imagem"
+                         onerror="this.onerror=null; this.className='unidade-imagem error'; this.innerHTML='<span>🏞️</span><br><small>${unidade.nome}</small>';">
+                    <div class="unidade-info">
+                        <h3 class="unidade-nome">${unidade.nome}</h3>
+                        <div class="unidade-data">📅 Criada em: ${formatDate(unidade.dataCriacao)}</div>
+                        <div class="unidade-instituicao">🏛️ ${getInstituicaoNome(unidade.instituicaoId)}</div>
+                        <div class="unidade-municipios">${municipiosHTML}</div>
+                        <p class="unidade-descricao">${unidade.descricao}</p>
+                        <p class="fonte-imagem">📷 Fonte: ${unidade.fonteImagem}</p>
+                        <button class="btn-comunicar" onclick="prepararComunicacao(${unidade.id})">
+                            ✉️ Comunicar sobre esta unidade
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Preencher select de unidades
+        function preencherSelectUnidades() {
+            const select = document.getElementById('unidade-select');
+            select.innerHTML = '<option value="">Selecione uma unidade</option>';
+            
+            unidadesConservacao.forEach(unidade => {
+                const option = document.createElement('option');
+                option.value = unidade.id;
+                option.textContent = unidade.nome;
+                select.appendChild(option);
+            });
+        }
+
+        // Mostrar seção
+        function showSection(sectionName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            if (sectionName === 'unidades') {
+                document.getElementById('unidades-section').classList.add('active');
+                document.querySelector('.nav-tab:first-child').classList.add('active');
+            } else if (sectionName === 'comunicacao') {
+                document.getElementById('comunicacao-section').classList.add('active');
+                document.querySelector('.nav-tab:last-child').classList.add('active');
+            }
+        }
+
+        // Preparar comunicação para unidade específica
+        function prepararComunicacao(unidadeId) {
+            showSection('comunicacao');
+            document.getElementById('unidade-select').value = unidadeId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Enviar comunicação
+        document.getElementById('comunicacao-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const titulo = document.getElementById('titulo').value;
+            const descricao = document.getElementById('descricao').value;
+            const email = document.getElementById('email').value;
+            const unidadeId = parseInt(document.getElementById('unidade-select').value);
+            
+            if (!titulo || !descricao || !email || !unidadeId) {
+                document.getElementById('alert-error').style.display = 'block';
+                document.getElementById('alert-success').style.display = 'none';
+                setTimeout(() => {
+                    document.getElementById('alert-error').style.display = 'none';
+                }, 3000);
+                return;
+            }
+            
+            const novaComunicacao = {
+                id: comunicacoes.length + 1,
+                titulo: titulo,
+                descricao: descricao,
+                dataHora: new Date().toISOString(),
+                email: email,
+                unidadeId: unidadeId,
+                status: 0
+            };
+            
+            comunicacoes.push(novaComunicacao);
+            
+            document.getElementById('alert-success').style.display = 'block';
+            document.getElementById('alert-error').style.display = 'none';
+            
+            this.reset();
+            
+            console.log('✅ Comunicação enviada:', novaComunicacao);
+            console.log('📊 Total de comunicações:', comunicacoes.length);
+            
+            setTimeout(() => {
+                document.getElementById('alert-success').style.display = 'none';
+                showSection('unidades');
+            }, 3000);
+        });
+
+        // Inicializar o sistema
+        document.addEventListener('DOMContentLoaded', function() {
+            renderizarUnidades();
+            preencherSelectUnidades();
+            console.log('🌿 Sistema de Unidades de Conservação inicializado');
+            console.log('📍 Unidades cadastradas:', unidadesConservacao.length);
+            console.log('🖼️ Imagens carregadas dos sites: estado.sc.gov.br e riodeserto.com.br');
+        });
+
+        // Função para debug
+        window.adicionarUnidade = function(novaUnidade) {
+            unidadesConservacao.push({
+                ...novaUnidade,
+                id: unidadesConservacao.length + 1
+            });
+            renderizarUnidades();
+            preencherSelectUnidades();
+        };
+    </script>
+</body>
+</html>
