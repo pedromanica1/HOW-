@@ -280,6 +280,79 @@
                 font-size: 2rem;
             }
         }
+
+        /* Estilo para a descrição da unidade no formulário */
+        .unidade-descricao-card {
+            background: #e8f4f8;
+            border-left: 4px solid #006994;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .unidade-descricao-card h4 {
+            color: #006994;
+            margin-bottom: 0.5rem;
+        }
+
+        .unidade-descricao-card p {
+            margin: 0.3rem 0;
+            font-size: 0.9rem;
+        }
+
+        .unidade-descricao-card .descricao-texto {
+            color: #555;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Estilo para o histórico de comunicações */
+        .historico-comunicacoes {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 2rem auto 0 auto;
+        }
+
+        .historico-comunicacoes h3 {
+            color: #006994;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #006994;
+            padding-bottom: 0.5rem;
+        }
+
+        .comunicacao-item {
+            background: #f9f9f9;
+            border-left: 4px solid #006994;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        .comunicacao-item h4 {
+            color: #006994;
+            margin-bottom: 0.5rem;
+        }
+
+        .comunicacao-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .comunicacao-descricao {
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sem-comunicacoes {
+            text-align: center;
+            color: #999;
+            padding: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -291,7 +364,6 @@
     <div class="container">
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showSection('unidades')">Unidades de Conservação</button>
-            <button class="nav-tab" onclick="showSection('comunicacao')">Enviar Comunicação</button>
         </div>
 
         <!-- Seção de Unidades de Conservação -->
@@ -306,6 +378,21 @@
             <div class="comunicacao-form">
                 <h2 style="color: #006994; margin-bottom: 1.5rem;">📝 Enviar Comunicação</h2>
                 
+                <!-- Área para exibir a descrição da unidade selecionada -->
+                <div id="unidade-descricao-area" style="display: none;">
+                    <div class="unidade-descricao-card" id="unidade-descricao-card">
+                        <h4>🏞️ Unidade de Conservação Selecionada</h4>
+                        <p><strong>Nome:</strong> <span id="desc-unidade-nome"></span></p>
+                        <p><strong>Instituição:</strong> <span id="desc-unidade-instituicao"></span></p>
+                        <p><strong>Data de Criação:</strong> <span id="desc-unidade-data"></span></p>
+                        <p><strong>Municípios:</strong> <span id="desc-unidade-municipios"></span></p>
+                        <div class="descricao-texto">
+                            <strong>📋 Descrição:</strong><br>
+                            <span id="desc-unidade-descricao"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="alert-success" class="alert alert-success">
                     ✅ Comunicação enviada com sucesso! Sua mensagem será analisada pelos administradores.
                 </div>
@@ -339,6 +426,14 @@
 
                     <button type="submit" class="btn-submit">Enviar Comunicação</button>
                 </form>
+            </div>
+
+            <!-- Caixa de Histórico de Comunicações -->
+            <div class="historico-comunicacoes">
+                <h3>📋 Histórico de Comunicações Enviadas</h3>
+                <div id="historico-lista">
+                    <!-- As comunicações serão exibidas aqui -->
+                </div>
             </div>
         </div>
     </div>
@@ -431,6 +526,11 @@
             return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', options);
         }
 
+        function formatDateTime(dataHora) {
+            const data = new Date(dataHora);
+            return data.toLocaleDateString('pt-BR') + ' às ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
         // Renderizar unidades de conservação
         function renderizarUnidades() {
             const container = document.getElementById('unidades-container');
@@ -480,6 +580,36 @@
             });
         }
 
+        // Exibir histórico de comunicações
+        function exibirHistorico() {
+            const historicoDiv = document.getElementById('historico-lista');
+            
+            if (comunicacoes.length === 0) {
+                historicoDiv.innerHTML = '<div class="sem-comunicacoes">📭 Nenhuma comunicação enviada ainda.</div>';
+                return;
+            }
+
+            historicoDiv.innerHTML = '';
+            // Exibir comunicações em ordem reversa (mais recente primeiro)
+            [...comunicacoes].reverse().forEach(comunicacao => {
+                const unidade = unidadesConservacao.find(u => u.id === comunicacao.unidadeId);
+                const item = document.createElement('div');
+                item.className = 'comunicacao-item';
+                item.innerHTML = `
+                    <h4>📌 ${comunicacao.titulo}</h4>
+                    <div class="comunicacao-meta">
+                        🕒 ${formatDateTime(comunicacao.dataHora)} | 
+                        📧 ${comunicacao.email} | 
+                        🏞️ ${unidade ? unidade.nome : 'Unidade não identificada'}
+                    </div>
+                    <div class="comunicacao-descricao">
+                        ${comunicacao.descricao}
+                    </div>
+                `;
+                historicoDiv.appendChild(item);
+            });
+        }
+
         // Mostrar seção
         function showSection(sectionName) {
             document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -495,7 +625,28 @@
                 document.querySelector('.nav-tab:first-child').classList.add('active');
             } else if (sectionName === 'comunicacao') {
                 document.getElementById('comunicacao-section').classList.add('active');
-                document.querySelector('.nav-tab:last-child').classList.add('active');
+                exibirHistorico(); // Atualiza o histórico ao mostrar a seção
+            }
+        }
+
+        // Atualizar descrição da unidade no formulário
+        function atualizarDescricaoUnidade(unidadeId) {
+            if (!unidadeId) {
+                document.getElementById('unidade-descricao-area').style.display = 'none';
+                return;
+            }
+            
+            const unidade = unidadesConservacao.find(u => u.id === parseInt(unidadeId));
+            if (unidade) {
+                const municipiosList = getMunicipiosNomes(unidade.municipiosIds);
+                document.getElementById('desc-unidade-nome').textContent = unidade.nome;
+                document.getElementById('desc-unidade-instituicao').textContent = getInstituicaoNome(unidade.instituicaoId);
+                document.getElementById('desc-unidade-data').textContent = formatDate(unidade.dataCriacao);
+                document.getElementById('desc-unidade-municipios').textContent = municipiosList.join(', ');
+                document.getElementById('desc-unidade-descricao').textContent = unidade.descricao;
+                document.getElementById('unidade-descricao-area').style.display = 'block';
+            } else {
+                document.getElementById('unidade-descricao-area').style.display = 'none';
             }
         }
 
@@ -503,6 +654,7 @@
         function prepararComunicacao(unidadeId) {
             showSection('comunicacao');
             document.getElementById('unidade-select').value = unidadeId;
+            atualizarDescricaoUnidade(unidadeId);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -540,20 +692,29 @@
             document.getElementById('alert-error').style.display = 'none';
             
             this.reset();
+            document.getElementById('unidade-descricao-area').style.display = 'none';
+            
+            // Atualizar o histórico
+            exibirHistorico();
             
             console.log('✅ Comunicação enviada:', novaComunicacao);
             console.log('📊 Total de comunicações:', comunicacoes.length);
             
             setTimeout(() => {
                 document.getElementById('alert-success').style.display = 'none';
-                showSection('unidades');
             }, 3000);
+        });
+
+        // Evento para quando selecionar uma unidade no select
+        document.getElementById('unidade-select').addEventListener('change', function() {
+            atualizarDescricaoUnidade(this.value);
         });
 
         // Inicializar o sistema
         document.addEventListener('DOMContentLoaded', function() {
             renderizarUnidades();
             preencherSelectUnidades();
+            exibirHistorico();
             console.log('🌿 Sistema de Unidades de Conservação inicializado');
             console.log('📍 Unidades cadastradas:', unidadesConservacao.length);
             console.log('🖼️ Imagens carregadas dos sites: estado.sc.gov.br e riodeserto.com.br');
